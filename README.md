@@ -80,7 +80,6 @@ prd.AugMn_17020011.csv : Produced in step 2.3b
 
 UC_PSM_17020011_AugMn.csv : Produced in step 3.1
 
-UC_PSM_17020011_AugMn_all.csv : Produced in step 3.1
 
 # Disclaimer
 
