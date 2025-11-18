@@ -70,9 +70,9 @@ AugMn_17020011.csv : Produced in step 2.3b
 
 ### 3.1_CalcPSM.R
 
-UCpublishedCOEF.csv : Bowerman et al. 20XX
+UCpublishedCOEF.csv : Bowerman et al. 2021 https://doi.org/10.1016/j.fishres.2021.105874
 
-UCPublished_VCOV.csv : Bowerman et al. 20XX
+UCPublished_VCOV.csv : Bowerman et al. 2021 https://doi.org/10.1016/j.fishres.2021.105874
 
 prd.AugMn_17020011.csv : Produced in step 2.3b
 
