@@ -14,7 +14,7 @@ COMID_to_HUC12.csv : Siegel et al. (2023)
 
 spatial_data.csv : Siegel et al. (2023)
 
-PNW_covariates/huc_huc10.fst : Siegel et al. (2023)
+PNW_covariates/huc_huc10.fst : Siegel et al. (2023), Riverscapes Exchange https://data.riverscapes.net/pt/streamtemp
 
 WenTemps3Jun25.csv : T. Bowerman, pers comm
 
