@@ -14,7 +14,7 @@ COMID_to_HUC12.csv : Siegel et al. (2023)
 
 spatial_data.csv : Siegel et al. (2023)
 
-PNW_covariates/huc_huc10.fst : Siegel et al. (2023), Riverscapes Exchange https://data.riverscapes.net/pt/streamtemp
+PNW_covariates/huc_huc10.fst : Siegel et al. (2023), Riverscapes Exchange <https://data.riverscapes.net/pt/streamtemp>
 
 WenTemps3Jun25.csv : T. Bowerman, pers comm
 
@@ -70,16 +70,15 @@ AugMn_17020011.csv : Produced in step 2.3b
 
 ### 3.1_CalcPSM.R
 
-UCpublishedCOEF.csv : Bowerman et al. 2021 https://doi.org/10.1016/j.fishres.2021.105874
+UCpublishedCOEF.csv : Bowerman et al. 2021 <https://doi.org/10.1016/j.fishres.2021.105874>
 
-UCPublished_VCOV.csv : Bowerman et al. 2021 https://doi.org/10.1016/j.fishres.2021.105874
+UCPublished_VCOV.csv : Bowerman et al. 2021 <https://doi.org/10.1016/j.fishres.2021.105874>
 
 prd.AugMn_17020011.csv : Produced in step 2.3b
 
 ### 3.2_map_PSM.R
 
 UC_PSM_17020011_AugMn.csv : Produced in step 3.1
-
 
 # Disclaimer
 
