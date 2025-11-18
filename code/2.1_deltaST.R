@@ -8,7 +8,7 @@ st <- st[!is.na(st$prd.stream_temp),]
 st <- st[,c("COMID", "tim.date", "year", "doy", "prd.stream_temp")]
 
 # Get future scenario data
-setwd("D://st-cc/nc_preds/")
+setwd("cc_preds")
 fls <- dir(getwd())
 fl <- fls[grep(".csv", fls)]
 basin <- 17020011
