@@ -4,7 +4,7 @@
 
 aimee.fullerton\@noaa.gov
 
-This repository includes scripts used to make daily predictions of past stream temperatures and to compute future changes in temperature for the Wenatchee River (Columbia) using methods from Siegel et al. 2023, PLoS Water 2(8) 30000119 and data from Fullerton et al. in prep, and to compute predicted pre-spawn mortality for Chinook salmon. Below are listed each script and the associated the data files called by the script, followed by the data's source (listed only on its the first appearance). Data are available separately.
+This repository includes scripts used to make daily predictions of past stream temperatures and to compute future changes in temperature for the Wenatchee River (Columbia) using methods from Siegel et al. 2023, PLoS Water 2(8) 30000119 and data from Fullerton et al. in prep, and to compute predicted pre-spawn mortality for Chinook salmon. Below are listed each script and the associated the data files called by the script, followed by the data's source (listed only on its the first appearance). Data necessary for running scripts are available and described at URL.
 
 ### 1.1.prepare_fitting_dataset.R
 
@@ -14,7 +14,7 @@ COMID_to_HUC12.csv : Siegel et al. (2023)
 
 spatial_data.csv : Siegel et al. (2023)
 
-PNW_covariates/huc_huc10.fst : Siegel et al. (2023)
+PNW_covariates/huc_huc10.fst : Siegel et al. (2023), Riverscapes Exchange https://data.riverscapes.net/pt/streamtemp
 
 WenTemps3Jun25.csv : T. Bowerman, pers comm
 
@@ -40,7 +40,7 @@ fitted_model_mean.RData : Produced in step 1.4
 
 st_pred_UC.csv : Produced in step 1.5
 
-cc_preds/1702001101.nc : PNW predictions, this study
+cc_preds_1702001101.csv, cc_preds_1702001102.csv, etc. : PNW predictions, this study
 
 ### 2.2_Mean2Max.R
 
@@ -70,9 +70,9 @@ AugMn_17020011.csv : Produced in step 2.3b
 
 ### 3.1_CalcPSM.R
 
-UCpublishedCOEF.csv : Bowerman et al. 20XX
+UCpublishedCOEF.csv : Bowerman et al. 2021 https://doi.org/10.1016/j.fishres.2021.105874
 
-UCPublished_VCOV.csv : Bowerman et al. 20XX
+UCPublished_VCOV.csv : Bowerman et al. 2021 https://doi.org/10.1016/j.fishres.2021.105874
 
 prd.AugMn_17020011.csv : Produced in step 2.3b
 
@@ -80,7 +80,6 @@ prd.AugMn_17020011.csv : Produced in step 2.3b
 
 UC_PSM_17020011_AugMn.csv : Produced in step 3.1
 
-UC_PSM_17020011_AugMn_all.csv : Produced in step 3.1
 
 # Disclaimer
 
