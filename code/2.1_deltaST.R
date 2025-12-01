@@ -199,26 +199,43 @@ data.table::fwrite(st, paste0("ST_delta_", basin, ".csv"))
 # unique(foo$COMID)
 # # evaluated in ArcGIS as a few tiny connector pieces, a headwater of Chiwaukum Cr, and some lower Wenatchee braids
 
-y <- 2010
-# pick one:
-cid <- 23080840; nm <- "Wenatchee River" #wenlower
-cid <- 23080724; nm <- "Chiwawa River" #chiwawa
-cid <- 23080878; nm <- "White River" #white
-cid <- 23081086; nm <- "Nason Creek" #nason
 
-st_iy <- st[st$year == y & st$COMID %in% cid,]
-st_iy <- st_iy[order(st_iy$tim.date),]
-ylms <- c(0, 23)
-colrs <- c("#C67B9F80", "#B4BA1280", "#488AC780")
 
-png(paste0("plots/COMID_", cid, "_", y, ".png"), width = 6, height = 5, units = "in", res = 300)
-plot(st_iy$tim.date, st_iy$fmn, cex = .3, type = "n",
-     main = paste0(nm, " (COMID ", cid, ")"), las = 1, ylab = "Stream temperature (C)", xlab = "Date", ylim = ylms)
-polygon(c(st_iy$tim.date, rev(st_iy$tim.date)), c(st_iy$flo, rev(st_iy$fhi)), col = colrs[1], border = NA)
-polygon(c(st_iy$tim.date, rev(st_iy$tim.date)), c(st_iy$nlo, rev(st_iy$nhi)), col = colrs[2], border = NA)
-polygon(c(st_iy$tim.date, rev(st_iy$tim.date)), c(st_iy$clo, rev(st_iy$chi)), col = colrs[3], border = NA)
-lines(st_iy$tim.date, st_iy$prd.stream_temp, cex = .3, col = "black")
-abline(h = seq(0,20,5), lty = 3, col = "gray40")
-abline(v = pretty(st_iy$tim.date), lty = 3, col = "gray40")
-legend("topleft", legend = c("far future", "near future", "current", "predicted"), col = c(colrs, "black"), lwd = 2)
-dev.off()
+
+# Figure 6A
+st <- data.table::fread("data/ST_max_17020011.csv")
+
+for(i in 1:4){
+  if(i == 1) {cid <- 23080878; nm <- "White River"} #white
+  if(i == 2) {cid <- 23080724; nm <- "Chiwawa River"} #chiwawa
+  if(i == 3) {cid <- 23081086; nm <- "Nason Creek"} #nason
+  if(i == 4) {cid <- 23080840; nm <- "Wenatchee River"} #wenlower
+  
+  st_i <- st[st$COMID %in% cid, c("doy", "prd.stream_temp", "clo", "cmn", "chi", "nlo", "nmn", "nhi", "flo", "fmn", "fhi")]
+  
+  st_medians <- data.frame("doy" = 1:366)
+  for(var in c("clo", "cmn", "chi", "nlo", "nmn", "nhi", "flo", "fmn", "fhi", "prd.stream_temp")){
+    var_sym <- sym(var)
+    result <- st_i %>% 
+      group_by(doy) %>%
+      reframe(median(!!var_sym, na.rm = T))
+    colnames(result)[ncol(result)] <- var
+    st_medians <- cbind(st_medians, result[,2])
+  }
+    
+  colrs <- c("#FF990080", "#994F0080", "#0C7BDC80")
+  ylms <- c(0, 23)
+  
+  png(paste0("plots/COMID_", cid, ".png"), width = 6, height = 5, units = "in", res = 300)
+  plot(st_medians$doy, st_medians$fmn, cex = .3, type = "n",
+       main = paste0(nm, " (COMID ", cid, ")"), las = 1, ylab = "Stream temperature (C)", xlab = "Date", ylim = ylms)
+  polygon(c(st_medians$doy, rev(st_medians$doy)), c(st_medians$flo, rev(st_medians$fhi)), col = colrs[1], border = NA)
+  polygon(c(st_medians$doy, rev(st_medians$doy)), c(st_medians$nlo, rev(st_medians$nhi)), col = colrs[2], border = NA)
+  polygon(c(st_medians$doy, rev(st_medians$doy)), c(st_medians$clo, rev(st_medians$chi)), col = colrs[3], border = NA)
+  lines(st_medians$doy, st_medians$prd.stream_temp, cex = .3, lwd = 2, col = "black")
+  abline(h = seq(0,20,5), lty = 3, col = "gray40")
+  abline(v = pretty(st_i$doy), lty = 3, col = "gray40")
+  if(i == 1) {legend("topleft", legend = c("far future", "near future", "current", "predicted"), col = c(colrs, "black"), lwd = 2)}
+  dev.off()  
+}
+  
