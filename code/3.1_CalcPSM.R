@@ -11,6 +11,8 @@
 
 
 library(ggplot2)
+library(rlang)
+library(dplyr)
 
 huc <- 17020011
 spawn_reaches <- read.csv("data/Wenatchee_spawn_reaches.csv")
@@ -19,7 +21,7 @@ cids <- spawn_reaches$COMID
 
 metric <- "AugMn" #or AugMn.lo, AugMn.hi
 
-stdat <- read.csv(paste0("prd.", metric, "_", huc, ".csv"))[,-1]
+stdat <- read.csv(paste0("data/prd.", metric, "_", huc, ".csv"))[,-1]
 st <- stdat[stdat$COMID %in% cids,]
 colnames(st)[3] <- "ST.metric"
 
@@ -108,52 +110,45 @@ ggplot(NewData, aes(x = ST.metric, y = PSMPred, color = rev(as.factor(Origin)), 
 
 
 # Plot over time ----
-colrs <- c("#C67B9F80", "#B4BA1280", "#488AC780")
+NewData <- data.table::fread(paste0("data/UC_PSM_", huc, "_", metric, ".csv"))
+d2p <- NewData[NewData$Origin == 0, c("year", "COMID", "ST.metric", "PSMPred", "psmlo", "psmhi")]
+d2p <- d2p[order(d2p$year, d2p$COMID),]
+  #d2p <- d2p[d2p$COMID %in% cids,]
 
-png("plots/PSM_over_time_spwn.png", width = 6, height = 6, units = "in", res = 300)
-  d2p <- NewData[order(NewData$year),]
-  d2p <- d2p[d2p$Origin == 0,]
-  d2p <- d2p[d2p$COMID %in% cids,]
-  plot(d2p$year, d2p$PSMPred, type = 'n', las = 1, ylab = "Predicted pre-spawn mortality for wild Chinook salmon", xlab = "Year", ylim = c(0,1))
-  points(d2p$year, d2p$psmhi, pch = 19, cex = 0.7, col = colrs[1])
-  points(d2p$year, d2p$PSMPred, pch = 19, cex = 0.7, col = colrs[2])
-  points(d2p$year, d2p$psmlo, pch = 19, cex = 0.7, col = colrs[3])
-  legend("topleft", legend = c("95% CI", "prediction", "5% CI"), col = colrs, pch = 19)
-dev.off()
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-# OTHER ----
-# HARP equation
- h <- -(1/6) * NewData$Temp + 4 # for temps between 18 and 24
-
-
-# HARP using Tracy's Willamette equation (I think)
-willamette_ps <- function(temp, # taken from HARP
-                            phos = 0,
-                            b0 = -9.053,
-                            b1 = .387,
-                            b2 = .029) {
-  log_p <- b0 + b1 * temp + b2 * phos
-  p <- plogis(log_p)
-  return(p)
+yrs <- sort(unique(d2p$year))
+psm_minmax <- data.frame("year" = sort(rep(seq(min(yrs), max(yrs)), 3)))
+for(var in c("PSMPred", "psmlo", "psmhi", "ST.metric")){
+  var_sym <- sym(var)
+  result <- d2p %>% 
+    group_by(year) %>%
+    reframe(quantile(!!var_sym, c(0.05, 0.5, 0.95), na.rm = T), prob = c(0.05, 0.5, 0.95))
+  colnames(result)[ncol(result) -1] <- var
+  if(var == "ST.metric"){
+    psm_minmax <- cbind(psm_minmax, result[, 2:3])
+  } else {
+    psm_minmax <- cbind(psm_minmax, result[, 2])
+    
+  }
 }
+colnames(psm_minmax) <- c("year", "PSMPred", "psmlo", "psmhi", "ST.metric", "quantile")
 
-NewData$wpsm <- willamette_ps(temp = NewData$prd.7DADM, phos = NewData$Origin)
-ggplot(NewData, aes(x = prd.mean, y=wpsm))+
-  geom_point(aes(x = prd.mean, y=wpsm))
+psm.min <- psm_minmax[psm_minmax$quantile == 0.05,]
+psm.max <- psm_minmax[psm_minmax$quantile == 0.95,]
+psm.med <- psm_minmax[psm_minmax$quantile == 0.5,]
 
+f1 <- predict(loess(psm.max$PSMPred ~ psm.max$year, span = 0.5))
+f2 <- predict(loess(psm.max$psmhi ~ psm.max$year, span = 0.5))
+f3 <- predict(loess(psm.max$psmlo ~ psm.max$year, span = 0.5))
 
+png("plots/PSM_over_time_spwn_subset.png", width = 6, height = 6, units = "in", res = 300)
+
+  plot(psm.max$year, psm.max$PSMPred, cex = .3, type = "n",
+      las = 1, ylab = "Predicted pre-spawn mortality for wild Chinook salmon", xlab = "Year", ylim = c(0,1))
+  polygon(c(psm.min$year, rev(psm.max$year)), c(psm.min$psmlo, rev(f3)), col = "#0C7BDC80", border = NA)
+  polygon(c(psm.min$year, rev(psm.max$year)), c(psm.min$psmhi, rev(f2)), col = "#0C7BDC80", border = NA)
+  polygon(c(psm.min$year, rev(psm.max$year)), c(psm.min$PSMPred, rev(f1)), col = "#0C7BDC80", border = NA)
+  points(psm.max$year, psm.max$psmlo, pch = 25, cex = 0.5, bg = "#0965B5", col = "#0965B5")
+  points(psm.max$year, psm.max$PSMPred, pch = 21, , cex = 0.7, bg = "#0C7BDC", col = "#0C7BDC")
+  points(psm.max$year, psm.max$psmhi, pch = 24, cex = 0.5, bg = "#A9C9E8", col = "#0C7BDC")
+
+dev.off()
