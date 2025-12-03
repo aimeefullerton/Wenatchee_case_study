@@ -4,7 +4,7 @@
 
 aimee.fullerton\@noaa.gov
 
-This repository includes scripts used to make daily predictions of past stream temperatures and to compute future changes in temperature for the Wenatchee River (Columbia) using methods from Siegel et al. 2023, PLoS Water 2(8) 30000119 and data from Fullerton et al. in prep, and to compute predicted pre-spawn mortality for Chinook salmon. Below are listed each script and the associated the data files called by the script, followed by the data's source (listed only on its the first appearance). Data necessary for running scripts are available and described at URL.
+This repository includes scripts used to make daily predictions of past stream temperatures and to compute future changes in temperature for the Wenatchee River (Columbia) using methods from Siegel et al. 2023, PLoS Water 2(8) 30000119 and data from Fullerton et al. in prep, and to compute predicted pre-spawn mortality for Chinook salmon. Below are listed each script and the associated the data files called by the script, followed by the data's source (listed only on its the first appearance). Data necessary for running scripts are available and described at https://doi.org/10.5281/zenodo.17643674.
 
 ### 1.1.prepare_fitting_dataset.R
 
