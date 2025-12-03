@@ -87,6 +87,28 @@ write.csv(NewData, paste0("data/UC_PSM_", huc, "_", metric, ".csv"))
 
 
 # Figure 7 ---- 
+NewData <- data.table::fread(paste0("data/UC_PSM_", huc, "_", metric, ".csv"))
+d2p <- NewData[NewData$Origin == 0, c("year", "COMID", "ST.metric", "PSMPred", "psmlo", "psmhi")]
+d2p <- d2p[order(d2p$year, d2p$COMID),]
+#d2p <- d2p[d2p$COMID %in% cids,]
+
+yrs <- sort(unique(d2p$year))
+result <- d2p %>% 
+  group_by(year) %>%
+  reframe(quantile(psmhi, c(0.05, 0.5, 0.95), na.rm = T), prob = c(0.05, 0.5, 0.95))
+colnames(result) <- c("year", "psmhi", "quantile")
+
+psm.min <- result[result$quantile == 0.05,-ncol(result)]
+psm.max <- result[result$quantile == 0.95,-ncol(result)]
+psm.med <- result[result$quantile == 0.5,-ncol(result)]
+psm.mn <- d2p %>% 
+  group_by(year) %>%
+  reframe("psmhi" = mean(psmhi, na.rm = T))
+
+f1 <- predict(loess(psm.max$psmhi ~ psm.max$year, span = 0.5))
+f2 <- predict(loess(psm.mn$psmhi ~ psm.mn$year, span = 0.5))
+f3 <- predict(loess(psm.min$psmhi ~ psm.min$year, span = 0.5))
+
 st.mn <- d2p %>% 
   group_by(year) %>%
   reframe("ST.metric" = mean(ST.metric, na.rm = T))
@@ -139,28 +161,6 @@ ggplot(NewData, aes(x = ST.metric, y = PSMPred, color = rev(as.factor(Origin)), 
   theme(legend.position = "none")
 
 # Alternative format Figure 7A ----
-NewData <- data.table::fread(paste0("data/UC_PSM_", huc, "_", metric, ".csv"))
-d2p <- NewData[NewData$Origin == 0, c("year", "COMID", "ST.metric", "PSMPred", "psmlo", "psmhi")]
-d2p <- d2p[order(d2p$year, d2p$COMID),]
-#d2p <- d2p[d2p$COMID %in% cids,]
-
-yrs <- sort(unique(d2p$year))
-result <- d2p %>% 
-  group_by(year) %>%
-  reframe(quantile(psmhi, c(0.05, 0.5, 0.95), na.rm = T), prob = c(0.05, 0.5, 0.95))
-colnames(result) <- c("year", "psmhi", "quantile")
-
-psm.min <- result[result$quantile == 0.05,-ncol(result)]
-psm.max <- result[result$quantile == 0.95,-ncol(result)]
-psm.med <- result[result$quantile == 0.5,-ncol(result)]
-psm.mn <- d2p %>% 
-  group_by(year) %>%
-  reframe("psmhi" = mean(psmhi, na.rm = T))
-
-f1 <- predict(loess(psm.max$psmhi ~ psm.max$year, span = 0.5))
-f2 <- predict(loess(psm.mn$psmhi ~ psm.mn$year, span = 0.5))
-f3 <- predict(loess(psm.min$psmhi ~ psm.min$year, span = 0.5))
-
 png("plots/PSM_over_time.png", width = 6, height = 6, units = "in", res = 300)
 
 plot(psm.max$year, psm.max$psmhi, cex = .3, type = "n",
