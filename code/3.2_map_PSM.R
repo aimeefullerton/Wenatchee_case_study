@@ -16,6 +16,7 @@ streams <- read_sf("data/shp/upper_columbia_streams_nhd2.shp")
 spawn_reaches <- read.csv("data/Wenatchee_spawn_reaches.csv")
 streams <- dplyr::left_join(streams, spawn_reaches, join_by(COMID))
 cids <- spawn_reaches$COMID
+wenlower <- streams$COMID[streams$COMID %in% cids & streams$GNIS_NAME %in% "Wenatchee River"]
 
 wenbndry <- read_sf("data/shp/Wenatchee_boundary.shp")
 wenstreams <- read_sf("data/shp/Wenatchee_NHDv2_SOgt2.shp")
@@ -23,10 +24,9 @@ streams <- dplyr::left_join(wenstreams, spawn_reaches, join_by(COMID))
 
 metric <- "AugMn"
 PSMdata <- data.table::fread(paste0("data/UC_PSM_", huc, "_", metric, ".csv"))[,-1]
-PSMall <- data.table::fread(paste0("data/UC_PSM_", huc, "_", metric, "_all.csv"))[,-1]
 
 # Aggregate across periods
-dat <- PSMall[, c("COMID", "year", "ST.metric", "PSMPred", "psmlo", "psmhi")]
+dat <- PSMdata[, c("COMID", "year", "ST.metric", "PSMPred", "psmlo", "psmhi")]
 # Create a Period column based on the year
 dat[, Period := cut(year,
                   breaks = c(1991, 2015, 2040, 2065, 2090),
@@ -73,8 +73,8 @@ pal <- viridisLite::plasma(7)
 fncPlotMap <- function(temp_column = prd.stream_temp, legpos = "none", legnm = "ΔPSM", lims = c(0,1)){
   plot_prd <- ggplot()+
     geom_sf(data = wenbndry, fill = "grey30", color = "grey30", size = 0.5) + 
-    geom_sf(data = spwn_rchs, color = "white", linewidth = 1.5)+
-    geom_sf(data = wlwr, color = "white", linewidth = 2.5)+
+    #geom_sf(data = spwn_rchs, color = "white", linewidth = 1.5)+
+    #geom_sf(data = wlwr, color = "white", linewidth = 2.5)+
     geom_sf(data = sf_data, aes(color = {{temp_column}}, linewidth = StreamOrde))+
     scale_color_stepsn( 
       n.breaks = 7, colors = pal,
@@ -106,6 +106,38 @@ combo_plot <- cowplot::plot_grid( # combine plots
     plot.background = element_rect(fill = "white", color =NA))
 
 ggsave(filename = paste0("plots/", huc, "_", metric, "_PSMmaps_deltas.png"), combo_plot, height = 3)
+
+# Zoom to spawn reaches
+spn_data <- subset(sf_data, COMID %in% cids)
+fncPlotMap2 <- function(temp_column = prd.stream_temp, legpos = "none", legnm = "ΔPSM", lims = c(0,1)){
+  plot_prd <- ggplot()+
+    geom_sf(data = wenbndry, fill = "grey30", color = "grey30", size = 0.5) + 
+    geom_sf(data = spn_data, aes(color = {{temp_column}}), linewidth = 2)+
+    scale_color_stepsn( 
+      n.breaks = 7, colors = pal,
+      limits = lims, name = legnm,
+      na.value = "gray80")+
+    scale_linewidth_continuous(range = c(0.2, 1.2)) +
+    guides(linewidth = "none") +
+    theme_void()+
+    theme(legend.position = legpos) #+
+  return(plot_prd)
+}
+plot_1 <- fncPlotMap2(dc, lims = c(0,0.28))
+plot_2 <- fncPlotMap2(dn, lims = c(0,0.28))
+plot_3 <- fncPlotMap2(df, legpos = "right", lims = c(0,0.28))
+
+combo_plot <- cowplot::plot_grid( # combine plots
+  plot_1, plot_2, plot_3,
+  nrow = 1,
+  rel_widths = c(0.8, 0.8, 1),
+  #labels = c("Current", "Near future", "Far future"),
+  label_colour = "black", label_size = 12)+
+  theme(
+    text = element_text(color = "black"),
+    plot.background = element_rect(fill = "white", color =NA))
+
+ggsave(filename = paste0("plots/", huc, "_", metric, "_PSMmaps_deltas_zoom.png"), combo_plot, height = 3)
 
 
 # actual values for a specific year
