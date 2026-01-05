@@ -189,6 +189,8 @@ agg9020 <- as.data.frame(data.table::fread("data/agg9020.csv"))
 agg2149 <- as.data.frame(data.table::fread("data/agg2149.csv"))
 agg5074 <- as.data.frame(data.table::fread("data/agg5074.csv"))
 agg7599 <- as.data.frame(data.table::fread("data/agg7599.csv"))
+emp_agg <- as.data.frame(data.table::fread("data/emp_agg.csv"))
+fut_pds <- as.data.frame(data.table::fread("data/future_adjusted.csv"))
 
 for(i in 1:5){
   if(i == 1) {cids <- spawn_reaches$COMID[spawn_reaches$spawn_reach %in% "white"]; nm <- "White River"} 
@@ -241,8 +243,8 @@ for(i in 1:5){
   colrs <- c("#FF990080", "#994F0080", "#0C7BDC80", "#0C9BAA80")
   ylms <- c(0,22)
   
-  png(paste0("plots/annual_", nm, ".png"), width = 6, height = 5, units = "in", res = 300)
-  plot(1:366, p95_emp, cex = .3, type = "n",
+  png(paste0("plots/annual_", nm, ".png"), width = 6, height = 4, units = "in", res = 300)
+  plot(1:366, q95_emp, cex = .3, type = "n",
        main = nm, las = 1, ylab = "Stream temperature (C)", xlab = "Date", ylim = ylms)
   polygon(c(1:366, rev(1:366)), c(q05_7599, rev(q95_7599)), col = colrs[1], border = NA)
   polygon(c(1:366, rev(1:366)), c(q05_5074, rev(q95_5074)), col = colrs[2], border = NA)
@@ -262,7 +264,11 @@ for(i in 1:5){
 mnAugByYear <- fncAggBy(dat = fut_pds[, c("Date", "COMID", "STadj")], filter_month = 8, reach = COMID, timestep = year, stat = "mean")
 mnAugByYear95 <- fncAggBy(dat = fut_pds[, c("Date", "COMID", "STadj95")], filter_month = 8, reach = COMID, timestep = year, stat = "q", p = 0.95)
 
-  colrs <- c("gray", "#0C9BAA80", "#0C7BDC80", "#FF990080", "#994F0080")
+data.table::fwrite(mnAugByYear, "data/mnAugByYear.csv")
+data.table::fwrite(mnAugByYear95, "data/mnAugByYear95.csv")
+
+
+colrs <- c("gray", "#0C9BAA80", "#0C7BDC80", "#FF990080", "#994F0080")
   
   dat2plot <- as.data.frame(mnAugByYear); var <- "mean_STadj"
   #dat2plot <- as.data.frame(mnAugByYear95); var <- "q95_STadj95"
