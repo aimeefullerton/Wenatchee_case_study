@@ -16,7 +16,7 @@ spatial_data.csv : Siegel et al. (2023)
 
 PNW_covariates/huc_huc10.fst : Siegel et al. (2023), Riverscapes Exchange <https://data.riverscapes.net/pt/streamtemp>
 
-WenTemps3Jun25.csv : T. Bowerman, pers comm
+WenTemps3Jun25.csv : T. Bowerman
 
 ### 1.2.antecedent_airT.R
 
@@ -36,27 +36,15 @@ covariates_mean_Wenatchee.fst : Produced in step 1.3
 
 fitted_model_mean.RData : Produced in step 1.4
 
-### 2.1_deltaST.R
+### 2.1.adjust_future_ST.R
 
-st_pred_UC.csv : Produced in step 1.5
+st_pred_Wenatchee.csv : Produced in step 1.5
 
 cc_preds_1702001101.csv, cc_preds_1702001102.csv, etc. : PNW predictions, this study
 
-### 2.2_Mean2Max.R
+Wenatchee_spawn_reaches.csv: : T. Bowerman
 
-Wenatchee_spawning_reaches.csv : WDFW
-
-ST_delta_17020011.csv : Produced in step 2.1
-
-### 2.3a_7DADM.R
-
-ST_max_17020011.csv : Produced in step 2.2
-
-### 2.3b_AugMn.R
-
-ST_max_17020011.csv : Produced in step 2.2, uses 'mean'
-
-### 2.4_map_metrics.R
+### 2.2.map_ST.R
 
 shp/Wenatchee_boundary.shp : NHD v2 Watershed Boundary Dataset
 
@@ -64,21 +52,13 @@ shp/upper_columbia_streams_nhd2.shp : Subset of NHD v2 Hydrography
 
 shp/Wenatchee_NHDv2_SOgt2.shp : Subset of NHD v2 Hydrography
 
-7DADM_17020011.csv : Produced in step 2.3a
+mnAugByYear.csv: Produced in step 2.1
 
-AugMn_17020011.csv : Produced in step 2.3b
-
-### 3.1_CalcPSM.R
+### 3.1.calcPSM.R
 
 UCpublishedCOEF.csv : Bowerman et al. 2021 <https://doi.org/10.1016/j.fishres.2021.105874>
 
-UCPublished_VCOV.csv : Bowerman et al. 2021 <https://doi.org/10.1016/j.fishres.2021.105874>
-
-prd.AugMn_17020011.csv : Produced in step 2.3b
-
-### 3.2_map_PSM.R
-
-UC_PSM_17020011_AugMn.csv : Produced in step 3.1
+future_adjusted.csv : Produced in step 2.1
 
 # Disclaimer
 
