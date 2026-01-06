@@ -17,6 +17,7 @@ spawn_reaches <- read.csv("data/Wenatchee_spawn_reaches.csv")
 cids <- spawn_reaches$COMID
 
 fut_pds <- data.table::fread("data/future_adjusted.csv")
+# filter to August daily temperatures
 st <- fut_pds[fut_pds$COMID %in% cids & lubridate::month(fut_pds$Date) %in% 8,]
 
 
@@ -59,14 +60,14 @@ fixef <- fixef.all[,1]
 NewData <- data.frame(st, eta = Mod.Mat %*% fixef)
 NewData <- with(NewData, data.frame(NewData, PSMPred = exp(eta) / (1+exp(eta)) ))   ## Predict PSM
 
-## read in covariance matrix
-vcov.mat <- as.matrix(read.csv(file="data/UCPublished_VCOV.csv", row.names=1))
-
-# eta = X*beta + Z*b + eps
-
 # #Get the standard errors (first need to subset data to avoid memory limit issues)
 # Not used in our application
 #
+## read in covariance matrix
+# vcov.mat <- as.matrix(read.csv(file="data/UCPublished_VCOV.csv", row.names=1))
+
+# eta = X*beta + Z*b + eps
+
 # VAR <- diag(Mod.Mat %*% vcov.mat %*% t(Mod.Mat))   ##these are variances (sqrt of diag elements)
 # NewData <- data.frame(NewData, pse = sqrt(VAR))   ## pse is p std error
 # 
