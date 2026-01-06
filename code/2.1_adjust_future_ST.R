@@ -131,7 +131,7 @@ abline(a = -0.46426, b = 1.06832, col = 2)
 abline(a = 0, b = 1, lty = 3, col = "gray50") #1:1 line
 summary(foo)
   # Conclusion: the future stream temp model definitely needs to be adjusted (black dots/line on graph) 
-  # The localized model matches the empirical data better in terms of the slope (red dots/line on graph); see evaluation above ~ line 71
+  # The localized model matches the empirical data better in terms of the slope (red dots/line on graph); see evaluation above
 
 # Create adjustment
 agg9020$pAdj <- (agg9020$mean_prd.stream_temp + 1) / (agg9020$mean_STvalue + 1)
@@ -196,54 +196,67 @@ for(i in 1:5){
   if(i == 4) {cids <- spawn_reaches$COMID[spawn_reaches$spawn_reach %in% "wenlower"]; nm <- "Wenatchee River"}
   if(i == 5) {cids <- spawn_reaches$COMID[spawn_reaches$spawn_reach %in% "wenmigr"]; nm <- "Migration Corridor"}
 
+  
   # Aggregate over the cids selected
-  dd <- agg9020[agg9020$COMID %in% cids,]
-  dd1 <- dd %>% group_by(doy) %>% reframe(mean(mean_prd.stream_temp, na.rm = T))
-  dd2 <- dd %>% group_by(doy) %>% reframe(mean(q05_prd.stream_temp, na.rm = T))
-  dd3 <- dd %>% group_by(doy) %>% reframe(mean(q95_prd.stream_temp, na.rm = T))
-  dd <- cbind(dd1, dd2[,2], dd3[,2]); colnames(dd) <- c("doy", "mean_prd.stream_temp", "q05_prd.stream_temp", "q95_prd.stream_temp")
-  q05_9020 <- predict(loess(dd$q05_prd.stream_temp ~ dd$doy, span = 0.5))
-  q95_9020 <- predict(loess(dd$q95_prd.stream_temp ~ dd$doy, span = 0.5))
+  agg <- agg9020[agg9020$COMID %in% cids,]
+  agg$Date <- as.Date(agg$doy - 1, origin = paste0(2020, "-01-01"))
+  agg$COMID <- 1 #set to same value so this isn't grouped in function
+  dat <- cbind(fncAggBy(dat = agg[,c("Date", "COMID", "q05_prd.stream_temp")], stat = "mean"), 
+               fncAggBy(dat = agg[,c("Date", "COMID", "mean_prd.stream_temp")], stat = "mean")[,3], 
+               fncAggBy(dat = agg[,c("Date", "COMID", "q95_prd.stream_temp")], stat = "mean")[,3])
+  dat$doy <- as.numeric(dat$doy); dat <- dat[order(dat$COMID, dat$doy), -1]
+  q05_9020 <- predict(loess(dat$mean_q05_prd.stream_temp ~ dd$doy, span = 0.5))
+  q95_9020 <- predict(loess(dat$mean_q95_prd.stream_temp ~ dd$doy, span = 0.5))
   
-  dd <- agg2020s[agg2020s$COMID %in% cids,]
-  dd1 <- dd %>% group_by(doy) %>% reframe(mean(mean_STadj, na.rm = T))
-  dd2 <- dd %>% group_by(doy) %>% reframe(mean(q05_STadj05, na.rm = T))
-  dd3 <- dd %>% group_by(doy) %>% reframe(mean(q95_STadj95, na.rm = T))
-  dd <- cbind(dd1, dd2[,2], dd3[,2]); colnames(dd) <- c("doy", "mean_STadj", "q05_STadj05", "q95_STadj95")
-  q05_2020s <- predict(loess(dd$q05_STadj05 ~ dd$doy, span = 0.5))
-  q95_2020s <- predict(loess(dd$q95_STadj95 ~ dd$doy, span = 0.5))
+  agg <- agg2020s[agg2020s$COMID %in% cids,]
+  agg$Date <- as.Date(agg$doy - 1, origin = paste0(2020, "-01-01"))
+  agg$COMID <- 1 #set to same value so this isn't grouped in function
+  dat <- cbind(fncAggBy(dat = agg[,c("Date", "COMID", "q05_STadj05")], stat = "mean"), 
+               fncAggBy(dat = agg[,c("Date", "COMID", "mean_STadj")], stat = "mean")[,3], 
+               fncAggBy(dat = agg[,c("Date", "COMID", "q95_STadj95")], stat = "mean")[,3])
+  dat$doy <- as.numeric(dat$doy); dat <- dat[order(dat$COMID, dat$doy), -1]
+  q05_2020s <- predict(loess(dat$mean_q05_STadj05 ~ dd$doy, span = 0.5))
+  q95_2020s <- predict(loess(dat$mean_q95_STadj95 ~ dd$doy, span = 0.5))
+
+  agg <- agg2040s[agg2040s$COMID %in% cids,]
+  agg$Date <- as.Date(agg$doy - 1, origin = paste0(2020, "-01-01"))
+  agg$COMID <- 1 #set to same value so this isn't grouped in function
+  dat <- cbind(fncAggBy(dat = agg[,c("Date", "COMID", "q05_STadj05")], stat = "mean"), 
+               fncAggBy(dat = agg[,c("Date", "COMID", "mean_STadj")], stat = "mean")[,3], 
+               fncAggBy(dat = agg[,c("Date", "COMID", "q95_STadj95")], stat = "mean")[,3])
+  dat$doy <- as.numeric(dat$doy); dat <- dat[order(dat$COMID, dat$doy), -1]
+  q05_2040s <- predict(loess(dat$mean_q05_STadj05 ~ dd$doy, span = 0.5))
+  q95_2040s <- predict(loess(dat$mean_q95_STadj95 ~ dd$doy, span = 0.5))
   
-  dd <- agg2040s[agg2040s$COMID %in% cids,]
-  dd1 <- dd %>% group_by(doy) %>% reframe(mean(mean_STadj, na.rm = T))
-  dd2 <- dd %>% group_by(doy) %>% reframe(mean(q05_STadj05, na.rm = T))
-  dd3 <- dd %>% group_by(doy) %>% reframe(mean(q95_STadj95, na.rm = T))
-  dd <- cbind(dd1, dd2[,2], dd3[,2]); colnames(dd) <- c("doy", "mean_STadj", "q05_STadj05", "q95_STadj95")
-  q05_2040s <- predict(loess(dd$q05_STadj05 ~ dd$doy, span = 0.5))
-  q95_2040s <- predict(loess(dd$q95_STadj95 ~ dd$doy, span = 0.5))
+  agg <- agg2060s[agg2060s$COMID %in% cids,]
+  agg$Date <- as.Date(agg$doy - 1, origin = paste0(2020, "-01-01"))
+  agg$COMID <- 1 #set to same value so this isn't grouped in function
+  dat <- cbind(fncAggBy(dat = agg[,c("Date", "COMID", "q05_STadj05")], stat = "mean"), 
+               fncAggBy(dat = agg[,c("Date", "COMID", "mean_STadj")], stat = "mean")[,3], 
+               fncAggBy(dat = agg[,c("Date", "COMID", "q95_STadj95")], stat = "mean")[,3])
+  dat$doy <- as.numeric(dat$doy); dat <- dat[order(dat$COMID, dat$doy), -1]
+  q05_2060s <- predict(loess(dat$mean_q05_STadj05 ~ dd$doy, span = 0.5))
+  q95_2060s <- predict(loess(dat$mean_q95_STadj95 ~ dd$doy, span = 0.5))
   
-  dd <- agg2060s[agg2060s$COMID %in% cids,]
-  dd1 <- dd %>% group_by(doy) %>% reframe(mean(mean_STadj, na.rm = T))
-  dd2 <- dd %>% group_by(doy) %>% reframe(mean(q05_STadj05, na.rm = T))
-  dd3 <- dd %>% group_by(doy) %>% reframe(mean(q95_STadj95, na.rm = T))
-  dd <- cbind(dd1, dd2[,2], dd3[,2]); colnames(dd) <- c("doy", "mean_STadj", "q05_STadj05", "q95_STadj95")
-  q05_2060s <- predict(loess(dd$q05_STadj05 ~ dd$doy, span = 0.5))
-  q95_2060s <- predict(loess(dd$q95_STadj95 ~ dd$doy, span = 0.5))
-  
-  dd <- agg2080s[agg2080s$COMID %in% cids,]
-  dd1 <- dd %>% group_by(doy) %>% reframe(mean(mean_STadj, na.rm = T))
-  dd2 <- dd %>% group_by(doy) %>% reframe(mean(q05_STadj05, na.rm = T))
-  dd3 <- dd %>% group_by(doy) %>% reframe(mean(q95_STadj95, na.rm = T))
-  dd <- cbind(dd1, dd2[,2], dd3[,2]); colnames(dd) <- c("doy", "mean_STadj", "q05_STadj05", "q95_STadj95")
-  q05_2080s <- predict(loess(dd$q05_STadj05 ~ dd$doy, span = 0.5))
-  q95_2080s <- predict(loess(dd$q95_STadj95 ~ dd$doy, span = 0.5))
-  
-  emp_agg1 <- as.data.frame(emp_agg[emp_agg$COMID %in% cids,])
-  dd1 <- emp_agg1 %>% group_by(doy) %>% reframe(mean(mean_AvgDailyTemp, na.rm = T))
-  dd2 <- emp_agg1 %>% group_by(doy) %>% reframe(mean(q05_AvgDailyTemp, na.rm = T))
-  dd3 <- emp_agg1 %>% group_by(doy) %>% reframe(mean(q95_AvgDailyTemp, na.rm = T))
-  emp_agg1 <- cbind(dd1, dd2[,2], dd3[,2]); colnames(emp_agg1) <- c("doy", "mean_AvgDailyTemp", "q05_AvgDailyTemp", "q95_AvgDailyTemp")
-  q05_emp <- predict(loess(emp_agg1$q05_AvgDailyTemp ~ emp_agg1$doy, span = 0.5))
-  q95_emp <- predict(loess(emp_agg1$q95_AvgDailyTemp ~ emp_agg1$doy, span = 0.5))
+  agg <- agg2080s[agg2080s$COMID %in% cids,]
+  agg$Date <- as.Date(agg$doy - 1, origin = paste0(2020, "-01-01"))
+  agg$COMID <- 1 #set to same value so this isn't grouped in function
+  dat <- cbind(fncAggBy(dat = agg[,c("Date", "COMID", "q05_STadj05")], stat = "mean"), 
+               fncAggBy(dat = agg[,c("Date", "COMID", "mean_STadj")], stat = "mean")[,3], 
+               fncAggBy(dat = agg[,c("Date", "COMID", "q95_STadj95")], stat = "mean")[,3])
+  dat$doy <- as.numeric(dat$doy); dat <- dat[order(dat$COMID, dat$doy), -1]
+  q05_2080s <- predict(loess(dat$mean_q05_STadj05 ~ dd$doy, span = 0.5))
+  q95_2080s <- predict(loess(dat$mean_q95_STadj95 ~ dd$doy, span = 0.5))
+
+  agg <- as.data.frame(emp_agg[emp_agg$COMID %in% cids,])
+  agg$Date <- as.Date(agg$doy - 1, origin = paste0(2020, "-01-01"))
+  agg$COMID <- 1 #set to same value so this isn't grouped in function
+  dat <- cbind(fncAggBy(dat = agg[,c("Date", "COMID", "q05_AvgDailyTemp")], stat = "mean"), 
+               fncAggBy(dat = agg[,c("Date", "COMID", "mean_AvgDailyTemp")], stat = "mean")[,3], 
+               fncAggBy(dat = agg[,c("Date", "COMID", "q95_AvgDailyTemp")], stat = "mean")[,3])
+  dat$doy <- as.numeric(dat$doy); dat <- dat[order(dat$COMID, dat$doy), -1]
+  q05_emp <- predict(loess(dat$mean_q05_AvgDailyTemp ~ dat$doy, span = 0.5))
+  q95_emp <- predict(loess(dat$mean_q95_AvgDailyTemp ~ dat$doy, span = 0.5))
 
   colrs <- c("#FF990080", "#994F0080", "#0C7BDC80", "#0C9BAA80")
   ylms <- c(0,23)
