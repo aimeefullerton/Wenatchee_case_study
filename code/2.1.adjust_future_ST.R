@@ -134,9 +134,9 @@ summary(foo)
   # The localized model matches the empirical data better in terms of the slope (red dots/line on graph); see evaluation above
 
 # Create adjustment
-agg9020$pAdj <- (agg9020$mean_prd.stream_temp + 1) / (agg9020$mean_STvalue + 1)
-agg9020$pAdj05 <- (agg9020$q05_prd.stream_temp + 1) / (agg9020$q05_STvalue + 1)
-agg9020$pAdj95 <- (agg9020$q95_prd.stream_temp + 1) / (agg9020$q95_STvalue + 1)
+agg9020$pAdj <- (agg9020$mean_prd.stream_temp + 273) / (agg9020$mean_STvalue + 273) 
+agg9020$pAdj05 <- (agg9020$p05_prd.stream_temp + 273) / (agg9020$q05_STvalue + 273)
+agg9020$pAdj95 <- (agg9020$p95_prd.stream_temp + 273) / (agg9020$q95_STvalue + 273)
 data.table::fwrite(agg9020, "data/agg9020.csv")
 
 hist(agg9020$pAdj, breaks = 40)
@@ -149,9 +149,9 @@ fut_pds <- fut_long[lubridate::year(fut_long$Date) > 2020,]
 fut_pds$doy <- lubridate::yday(fut_pds$Date)
 fut_pds <- dplyr::left_join(fut_pds, agg9020[, c("COMID", "doy", "pAdj", "pAdj05", "pAdj95")], by = c("COMID", "doy"))
 
-fut_pds$STadj <- fut_pds$STvalue * fut_pds$pAdj
-fut_pds$STadj05 <- fut_pds$STvalue * fut_pds$pAdj05
-fut_pds$STadj95 <- fut_pds$STvalue * fut_pds$pAdj95
+fut_pds$STadj <- (fut_pds$STvalue + 273) * fut_pds$pAdj - 273
+fut_pds$STadj05 <- (fut_pds$STvalue + 273)  * fut_pds$pAdj05 - 273
+fut_pds$STadj95 <- (fut_pds$STvalue + 273) * fut_pds$pAdj95 - 273
 data.table::fwrite(fut_pds, "data/future_adjusted.csv")
 
 hist(fut_pds$STadj, breaks = 40)
@@ -201,12 +201,12 @@ for(i in 1:5){
   agg <- agg9020[agg9020$COMID %in% cids,]
   agg$Date <- as.Date(agg$doy - 1, origin = paste0(2020, "-01-01"))
   agg$COMID <- 1 #set to same value so this isn't grouped in function
-  dat <- cbind(fncAggBy(dat = agg[,c("Date", "COMID", "q05_prd.stream_temp")], stat = "mean"), 
+  dat <- cbind(fncAggBy(dat = agg[,c("Date", "COMID", "p05_prd.stream_temp")], stat = "mean"), 
                fncAggBy(dat = agg[,c("Date", "COMID", "mean_prd.stream_temp")], stat = "mean")[,3], 
-               fncAggBy(dat = agg[,c("Date", "COMID", "q95_prd.stream_temp")], stat = "mean")[,3])
+               fncAggBy(dat = agg[,c("Date", "COMID", "p95_prd.stream_temp")], stat = "mean")[,3])
   dat$doy <- as.numeric(dat$doy); dat <- dat[order(dat$COMID, dat$doy), -1]
-  q05_9020 <- predict(loess(dat$mean_q05_prd.stream_temp ~ dd$doy, span = 0.5))
-  q95_9020 <- predict(loess(dat$mean_q95_prd.stream_temp ~ dd$doy, span = 0.5))
+  q05_9020 <- predict(loess(dat$mean_p05_prd.stream_temp ~ dat$doy, span = 0.5))
+  q95_9020 <- predict(loess(dat$mean_p95_prd.stream_temp ~ dat$doy, span = 0.5))
   
   agg <- agg2020s[agg2020s$COMID %in% cids,]
   agg$Date <- as.Date(agg$doy - 1, origin = paste0(2020, "-01-01"))
@@ -215,8 +215,8 @@ for(i in 1:5){
                fncAggBy(dat = agg[,c("Date", "COMID", "mean_STadj")], stat = "mean")[,3], 
                fncAggBy(dat = agg[,c("Date", "COMID", "q95_STadj95")], stat = "mean")[,3])
   dat$doy <- as.numeric(dat$doy); dat <- dat[order(dat$COMID, dat$doy), -1]
-  q05_2020s <- predict(loess(dat$mean_q05_STadj05 ~ dd$doy, span = 0.5))
-  q95_2020s <- predict(loess(dat$mean_q95_STadj95 ~ dd$doy, span = 0.5))
+  q05_2020s <- predict(loess(dat$mean_q05_STadj05 ~ dat$doy, span = 0.5))
+  q95_2020s <- predict(loess(dat$mean_q95_STadj95 ~ dat$doy, span = 0.5))
 
   agg <- agg2040s[agg2040s$COMID %in% cids,]
   agg$Date <- as.Date(agg$doy - 1, origin = paste0(2020, "-01-01"))
@@ -225,8 +225,8 @@ for(i in 1:5){
                fncAggBy(dat = agg[,c("Date", "COMID", "mean_STadj")], stat = "mean")[,3], 
                fncAggBy(dat = agg[,c("Date", "COMID", "q95_STadj95")], stat = "mean")[,3])
   dat$doy <- as.numeric(dat$doy); dat <- dat[order(dat$COMID, dat$doy), -1]
-  q05_2040s <- predict(loess(dat$mean_q05_STadj05 ~ dd$doy, span = 0.5))
-  q95_2040s <- predict(loess(dat$mean_q95_STadj95 ~ dd$doy, span = 0.5))
+  q05_2040s <- predict(loess(dat$mean_q05_STadj05 ~ dat$doy, span = 0.5))
+  q95_2040s <- predict(loess(dat$mean_q95_STadj95 ~ dat$doy, span = 0.5))
   
   agg <- agg2060s[agg2060s$COMID %in% cids,]
   agg$Date <- as.Date(agg$doy - 1, origin = paste0(2020, "-01-01"))
@@ -235,8 +235,8 @@ for(i in 1:5){
                fncAggBy(dat = agg[,c("Date", "COMID", "mean_STadj")], stat = "mean")[,3], 
                fncAggBy(dat = agg[,c("Date", "COMID", "q95_STadj95")], stat = "mean")[,3])
   dat$doy <- as.numeric(dat$doy); dat <- dat[order(dat$COMID, dat$doy), -1]
-  q05_2060s <- predict(loess(dat$mean_q05_STadj05 ~ dd$doy, span = 0.5))
-  q95_2060s <- predict(loess(dat$mean_q95_STadj95 ~ dd$doy, span = 0.5))
+  q05_2060s <- predict(loess(dat$mean_q05_STadj05 ~ dat$doy, span = 0.5))
+  q95_2060s <- predict(loess(dat$mean_q95_STadj95 ~ dat$doy, span = 0.5))
   
   agg <- agg2080s[agg2080s$COMID %in% cids,]
   agg$Date <- as.Date(agg$doy - 1, origin = paste0(2020, "-01-01"))
@@ -245,8 +245,8 @@ for(i in 1:5){
                fncAggBy(dat = agg[,c("Date", "COMID", "mean_STadj")], stat = "mean")[,3], 
                fncAggBy(dat = agg[,c("Date", "COMID", "q95_STadj95")], stat = "mean")[,3])
   dat$doy <- as.numeric(dat$doy); dat <- dat[order(dat$COMID, dat$doy), -1]
-  q05_2080s <- predict(loess(dat$mean_q05_STadj05 ~ dd$doy, span = 0.5))
-  q95_2080s <- predict(loess(dat$mean_q95_STadj95 ~ dd$doy, span = 0.5))
+  q05_2080s <- predict(loess(dat$mean_q05_STadj05 ~ dat$doy, span = 0.5))
+  q95_2080s <- predict(loess(dat$mean_q95_STadj95 ~ dat$doy, span = 0.5))
 
   agg <- as.data.frame(emp_agg[emp_agg$COMID %in% cids,])
   agg$Date <- as.Date(agg$doy - 1, origin = paste0(2020, "-01-01"))
@@ -274,7 +274,7 @@ for(i in 1:5){
   lines(1:length(q95_emp), q95_emp)
 
   abline(h = seq(0,20,5), lty = 3, col = "gray40")
-  abline(v = pretty(dd$doy), lty = 3, col = "gray40")
+  abline(v = pretty(dat$doy), lty = 3, col = "gray40")
   if(i == 1) {legend("topleft", legend = c("2080s", "2060s", "2040s", "2020s", "observed"), col = c(colrs, "black"), lwd = 2)}
   dev.off()  
 }
@@ -290,6 +290,11 @@ for(i in 1:5){
   
   cat(nm, quantile(fut_pds$STadj[lubridate::month(fut_pds$Date) %in% 8 & fut_pds$COMID %in% cids], probs = c(0,0.1, 0.5, 0.9, 1)), "\n")
 }
+# White River 6.500631 11.30984 13.23726 14.77661 16.73426 
+# Chiwawa River 6.017129 10.91512 13.3838 15.73623 18.69643 
+# Nason Creek 7.09847 12.53822 14.73399 16.73616 19.93113 
+# Wenatchee River 11.62614 16.58684 18.83501 20.67793 22.76512 
+# Migration Corridor 11.21194 17.2481 20.03777 23.00235 26.80358 
 
 # mean August metric by year
 mnAugByYear <- fncAggBy(dat = fut_pds[, c("Date", "COMID", "STadj")], filter_month = 8, reach = COMID, timestep = year, stat = "mean")
@@ -298,28 +303,6 @@ mnAugByYear95 <- fncAggBy(dat = fut_pds[, c("Date", "COMID", "STadj95")], filter
 data.table::fwrite(mnAugByYear, "data/mnAugByYear.csv")
 data.table::fwrite(mnAugByYear95, "data/mnAugByYear95.csv")
 
-# 
-# colrs <- c("gray", "#0C9BAA80", "#0C7BDC80", "#FF990080", "#994F0080")
-#   
-#   dat2plot <- as.data.frame(mnAugByYear); var <- "mean_STadj"
-#   #dat2plot <- as.data.frame(mnAugByYear95); var <- "q95_STadj95"
-#   cids <- spawn_reaches$COMID[spawn_reaches$spawn_reach %in% "white"]
-#   plot(dat2plot$year[dat2plot$COMID %in% cids], dat2plot[,var][dat2plot$COMID %in% cids], 
-#        las = 1, ylab = "Stream temperature (C)", xlab = "Date", ylim = c(10,25), type = 'n')
-#   cids <- spawn_reaches$COMID[spawn_reaches$spawn_reach %in% "chiwawa"]
-#   points(dat2plot$year[dat2plot$COMID %in% cids], dat2plot[, var][dat2plot$COMID %in% cids], pch = 19, col = colrs[2])
-#   cids <- spawn_reaches$COMID[spawn_reaches$spawn_reach %in% "nason"]
-#   points(dat2plot$year[dat2plot$COMID %in% cids], dat2plot[, var][dat2plot$COMID %in% cids], pch = 19, col = colrs[3])
-#   cids <- spawn_reaches$COMID[spawn_reaches$spawn_reach %in% "wenmigr"]
-#   points(dat2plot$year[dat2plot$COMID %in% cids], dat2plot[, var][dat2plot$COMID %in% cids], pch = 19, col = colrs[4])
-#   cids <- spawn_reaches$COMID[spawn_reaches$spawn_reach %in% "wenlower"]
-#   points(dat2plot$year[dat2plot$COMID %in% cids], dat2plot[, var][dat2plot$COMID %in% cids], pch = 19, col = colrs[5])
-#   cids <- spawn_reaches$COMID[spawn_reaches$spawn_reach %in% "white"]
-#   points(dat2plot$year[dat2plot$COMID %in% cids], dat2plot[, var][dat2plot$COMID %in% cids], pch = 19, col = colrs[1])
-#   abline(h = seq(10,26,2), lty = 3, col = "gray")
-#   abline(v = seq(2020, 2100,10), lty = 3, col = "gray")
-#   abline(h = c(17, 20))
-#   
 # # Get migration corridor
 # library(nhdplusTools)
 # streams <- sf::st_read("data/shp/Wenatchee_NHDv2_vat.shp")|>

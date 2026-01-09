@@ -159,7 +159,7 @@ fncPlotPSMbyST <- function(dat, i){
     geom_point(aes(color = year), size = 1, alpha = 0.05) +
     
     # 2. Violin Plot Layer (Discretized via grouping)
-    # Use 'group = five_year_bin' to force discrete violins on a continuous scale
+    # Use 'group to force discrete violins on a continuous scale
     geom_violin(
       aes(x = STadj, group = bin_label2), 
       fill = NA, 
@@ -184,7 +184,6 @@ fncPlotPSMbyST <- function(dat, i){
       axis.title = element_text(size = 14),
       axis.title.y = element_text(vjust = 3.5),
       axis.title.x = element_text(vjust = -1),
-      # Reducing grid lines as requested previously
       panel.grid.minor = element_blank()
     )
   filename <- paste0("plots/Wenatchee_PSM_by_ST_", nm, ".png")
